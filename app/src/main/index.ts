@@ -1,21 +1,31 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+
+// アイコンファイルのインポート
+import iconWinLinux from '../../resources/icon-win-linux.ico?asset'
+import iconMac from '../../resources/icon-mac.png?asset'
 
 function createWindow(): void {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  // 基本のウィンドウオプション
+  const windowOptions: Electron.BrowserWindowConstructorOptions = {
     width: 900,
     height: 670,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
-  })
+  }
+
+  // WindowsおよびLinuxの場合はウィンドウのアイコンを指定
+  // ※ macOS はウィンドウオプションの icon は無視されるため Dock アイコンを別途設定します
+  if (process.platform === 'win32' || process.platform === 'linux') {
+    windowOptions.icon = iconWinLinux
+  }
+
+  const mainWindow = new BrowserWindow(windowOptions)
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -26,8 +36,7 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+  // 開発中はリモートURL、プロダクションではローカルのHTMLファイルを読み込む
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -35,40 +44,32 @@ function createWindow(): void {
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  // Windows 用: アプリケーションIDの設定（タスクバーアイコンなどに影響）
+  electronApp.setAppUserModelId('com.electron.73-ground-software')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+  // macOS 用: Dock のアイコンを設定
+  if (process.platform === 'darwin') {
+    app.dock.setIcon(iconMac)
+  }
+
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
   createWindow()
 
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
+  app.on('activate', () => {
+    // macOS の場合、Dockアイコンがクリックされウィンドウがなければ再生成する
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+// macOS 以外では全ウィンドウを閉じたらアプリを終了する
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
