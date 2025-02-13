@@ -1,3 +1,4 @@
+import { Button } from './components/ui/button'
 import './global.css'
 
 function App(): JSX.Element {
@@ -6,6 +7,7 @@ function App(): JSX.Element {
   return (
     <>
       <h1 className="text-red-500">Hello World</h1>
+      <Button>Click Me</Button>
       {/* <img alt="logo" className="logo" src={electronLogo} />
       <div className="creator">Powered by electron-vite</div>
       <div className="text">
