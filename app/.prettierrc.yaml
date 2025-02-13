@@ -1,4 +1,10 @@
 singleQuote: true
-semi: false
+semi: true
 printWidth: 100
-trailingComma: none
+trailingComma: es5
+tabWidth: 2
+plugins:
+  - prettier-plugin-tailwindcss
+tailwindFunctions:
+  - clsx
+  - cn

@@ -2,3 +2,7 @@ node_modules
 dist
 out
 .gitignore
+
+src/renderer/src/components/ui/**/*.tsx
+src/renderer/src/hooks/use-toast.ts
+src/renderer/src/lib/utils.ts

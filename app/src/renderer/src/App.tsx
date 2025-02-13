@@ -1,8 +1,8 @@
-import { Button } from './components/ui/button'
-import './global.css'
+import { Button } from './components/ui/button';
+import './global.css';
 
 function App(): JSX.Element {
-  // const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const _ipcHandle = (): void => window.electron.ipcRenderer.send('ping');
 
   return (
     <>
@@ -31,7 +31,7 @@ function App(): JSX.Element {
       </div> */}
       {/* <Versions></Versions> */}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
