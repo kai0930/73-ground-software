@@ -71,10 +71,8 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((itemList) => (
-                <>
-                  <SidebarGroupLabel key={itemList.groupLabel}>
-                    {itemList.groupLabel}
-                  </SidebarGroupLabel>
+                <div key={itemList.groupLabel}>
+                  <SidebarGroupLabel>{itemList.groupLabel}</SidebarGroupLabel>
                   {itemList.items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton asChild isActive={router.location.pathname === item.url}>
@@ -85,7 +83,7 @@ export function AppSidebar() {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
-                </>
+                </div>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>

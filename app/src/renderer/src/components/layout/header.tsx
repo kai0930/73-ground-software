@@ -3,7 +3,7 @@ import { SidebarTrigger } from '@renderer/components/ui/sidebar';
 
 export default function Header() {
   return (
-    <div className="flex h-[var(--header-height)] w-full items-center justify-between border border-b border-solid border-border px-6">
+    <div className="flex h-[var(--header-height)] w-full items-center justify-between border border-solid border-border px-6">
       <div className="flex h-full items-center gap-6">
         <SidebarTrigger />
         <Separator orientation="vertical" className="h-3/5" />
@@ -30,7 +30,7 @@ function ParameterDisplay(props: ParameterDisplayProps) {
   return (
     <div className="flex flex-col">
       <p className="text-xs text-muted-foreground">{title}</p>
-      <p className="text-md font-bold">{value}</p>
+      <p className="text-base font-bold">{value}</p>
     </div>
   );
 }

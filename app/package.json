@@ -4,7 +4,6 @@
   "description": "C73J Ground Software",
   "main": "./out/main/index.js",
   "author": "https://github.com/kai0930",
-  "homepage": "https://github.com/kai0930/73_ground_software",
   "scripts": {
     "format": "tsr generate && prettier --write src/renderer/src/**/*.{ts,tsx} && eslint src/renderer/src/**/*.{ts,tsx} --fix --quiet",
     "lint": "tsr generate && eslint src/renderer/src/**/*.{ts,tsx} --fix --quiet",
@@ -32,15 +31,19 @@
     "@radix-ui/react-separator": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
+    "@react-three/drei": "^9.121.4",
+    "@react-three/fiber": "^8.17.14",
     "@tanstack/react-router": "^1.102.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "electron-updater": "^6.1.7",
     "lucide-react": "^0.475.0",
+    "react-resizable-panels": "^2.1.7",
     "serialport": "^13.0.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
+    "three": "^0.173.0",
     "ws": "^8.18.0"
   },
   "devDependencies": {

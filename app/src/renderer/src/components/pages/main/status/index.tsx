@@ -42,10 +42,10 @@ export default function Status({ className }: Props) {
   return (
     <div className={cn('w-full', className)}>
       {boardStatus.map((board) => (
-        <div className="flex items-center justify-between">
+        <div key={board.name} className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="relative flex size-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-75"></span>
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-sky-400 opacity-75"></span>
               <span className="relative inline-flex size-3 rounded-full bg-sky-500"></span>
             </span>
             <p>{board.name}</p>

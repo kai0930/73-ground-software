@@ -20,7 +20,7 @@ const APP_CONFIG = {
   version: '1.0.0',
   buildVersion: 'build20250212',
   authors: ['Gamo Kaishu'] as string[],
-  copyright: 'Copyright © 2025 Ground software',
+  copyright: 'Copyright © http://localhost:5173/src/assets/logo-with-text.svg2025 Ground software',
   appId: 'com.electron.73-ground-software',
 } as const;
 
@@ -29,6 +29,7 @@ const WINDOW_DEFAULT_CONFIG = {
   height: 730,
   show: false,
   autoHideMenuBar: true,
+  backgroundColor: '#2b2b2b',
 } as const;
 
 const ports = {
