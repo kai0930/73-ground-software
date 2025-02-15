@@ -1,74 +1,269 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
-import { join } from 'path'
-import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import {
+  app,
+  shell,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  type MenuItemConstructorOptions,
+  type MenuItem,
+} from 'electron';
+import { join } from 'path';
+import { electronApp, optimizer, is } from '@electron-toolkit/utils';
+import { SerialPort } from 'serialport';
+
+// アイコン
+import iconWinLinux from '../../resources/icon-win-linux.ico?asset';
+import iconMac from '../../resources/icon-mac.png?asset';
+
+const APP_CONFIG = {
+  name: 'GroundSorfware',
+  version: '1.0.0',
+  buildVersion: 'build20250212',
+  authors: ['Gamo Kaishu'] as string[],
+  copyright: 'Copyright © http://localhost:5173/src/assets/logo-with-text.svg2025 Ground software',
+  appId: 'com.electron.73-ground-software',
+} as const;
+
+const WINDOW_DEFAULT_CONFIG = {
+  width: 1000,
+  height: 730,
+  show: false,
+  autoHideMenuBar: true,
+  backgroundColor: '#2b2b2b',
+} as const;
+
+const ports = {
+  uplink: null as SerialPort | null,
+  downlink: null as SerialPort | null,
+};
+
+function initializeApp(): void {
+  app.setAboutPanelOptions({
+    applicationName: APP_CONFIG.name,
+    applicationVersion: APP_CONFIG.version,
+    version: APP_CONFIG.buildVersion,
+    authors: APP_CONFIG.authors,
+    copyright: APP_CONFIG.copyright,
+    iconPath: process.platform === 'win32' ? iconWinLinux : iconMac,
+  });
+
+  if (process.platform === 'darwin') {
+    app.dock.setIcon(iconMac);
+  }
+
+  electronApp.setAppUserModelId(APP_CONFIG.appId);
+}
 
 function createWindow(): void {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
-    show: false,
-    autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+  const windowOptions: Electron.BrowserWindowConstructorOptions = {
+    ...WINDOW_DEFAULT_CONFIG,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
-  })
+      sandbox: false,
+    },
+  };
+
+  if (process.platform === 'win32' || process.platform === 'linux') {
+    windowOptions.icon = iconWinLinux;
+  }
+
+  const mainWindow = new BrowserWindow(windowOptions);
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-  })
+    mainWindow.show();
+  });
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
+  setupWindowHandlers(mainWindow);
+  loadAppContent(mainWindow);
+}
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
+function setupWindowHandlers(window: BrowserWindow): void {
+  window.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url);
+    return { action: 'deny' };
+  });
+}
+
+function loadAppContent(window: BrowserWindow): void {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+    window.loadURL(process.env['ELECTRON_RENDERER_URL']);
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    window.loadFile(join(__dirname, '../renderer/index.html'));
   }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
-  // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+function setAppMenu() {
+  const template = [
+    ...(isMacOS()
+      ? [
+          {
+            label: 'Ground Software',
+            submenu: [
+              {
+                label: '設定',
+                click: () => {
+                  console.log('setAppMenu', 'setting');
+                  const win = BrowserWindow.getFocusedWindow();
+                  if (win) {
+                    win.webContents.send('navigate-to', 'setting');
+                  }
+                },
+              },
+              {
+                label: '閉じる',
+                role: 'close',
+              },
+            ],
+          },
+        ]
+      : [
+          {
+            label: 'Ground Software',
+            submenu: [{ type: 'separator' }, { label: '終了', role: 'quit' }],
+          },
+        ]),
+    {
+      label: '表示',
+      submenu: [
+        { label: 'リロード', role: 'reload' },
+        { label: '強制リロード', role: 'forceReload' },
+        { label: '開発者ツール', role: 'toggleDevTools' },
+        { type: 'separator' },
+        { label: 'ズームリセット', role: 'resetZoom' },
+        { label: 'ズームイン', role: 'zoomIn' },
+        { label: 'ズームアウト', role: 'zoomOut' },
+        { type: 'separator' },
+        { label: 'フルスクリーン', role: 'togglefullscreen' },
+      ],
+    },
+    {
+      label: 'ウィンドウ',
+      submenu: [
+        { label: '最小化', role: 'minimize' },
+        { label: '最大化', role: 'zoom' },
+        ...(process.platform === 'darwin'
+          ? [
+              { type: 'separator' },
+              { label: '前面に表示', role: 'front' },
+              { type: 'separator' },
+              { label: 'ウィンドウ', role: 'window' },
+            ]
+          : [{ label: '閉じる', role: 'close' }]),
+      ],
+    },
+    {
+      label: 'ヘルプ',
+      submenu: [
+        {
+          label: '使い方',
+          click: () => {
+            console.log('setAppMenu', 'how-to-use');
+            const win = BrowserWindow.getFocusedWindow();
+            if (win) {
+              win.webContents.send('navigate-to', 'how-to-use');
+            }
+          },
+        },
+      ],
+    },
+  ];
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
-  app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
-  })
+  const menu = Menu.buildFromTemplate(template as (MenuItemConstructorOptions | MenuItem)[]);
+  Menu.setApplicationMenu(menu);
+}
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
-  createWindow()
-
-  app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
-  })
-})
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
+// SerialPort関連の関数
+async function listSerialPorts() {
+  try {
+    const ports = await SerialPort.list();
+    return ports;
+  } catch (error) {
+    console.error('Error listing serial ports:', error);
+    return [];
   }
-})
+}
 
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+function setupSerialPortHandlers(): void {
+  ipcMain.handle('list-serial-ports', async () => {
+    return await listSerialPorts();
+  });
+
+  ipcMain.handle('connect-serial-port', async (_, { type, path, baudRate }) => {
+    try {
+      if (ports[type]) {
+        await new Promise((resolve) => ports[type]?.close(resolve));
+      }
+
+      ports[type] = new SerialPort({
+        path,
+        baudRate: parseInt(baudRate),
+        autoOpen: false,
+      });
+
+      await new Promise((resolve, reject) => {
+        ports[type]?.open((err) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(true);
+          }
+        });
+      });
+
+      ports[type]?.on('data', (data) => {
+        const win = BrowserWindow.getFocusedWindow();
+        if (win) {
+          win.webContents.send(`serial-data-${type}`, data.toString());
+        }
+      });
+
+      return { success: true };
+    } catch (error: unknown) {
+      console.error(`Error connecting to ${type} serial port:`, error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  });
+
+  ipcMain.handle('disconnect-serial-port', async (_, { type }) => {
+    try {
+      if (ports[type]) {
+        await new Promise((resolve) => ports[type]?.close(resolve));
+        ports[type] = null;
+      }
+      return { success: true };
+    } catch (error: unknown) {
+      console.error(`Error disconnecting ${type} serial port:`, error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  });
+}
+
+app.whenReady().then(() => {
+  initializeApp();
+  createWindow();
+  setAppMenu();
+  setupSerialPortHandlers();
+
+  app.on('browser-window-created', (_, window) => {
+    optimizer.watchWindowShortcuts(window);
+  });
+
+  ipcMain.on('ping', () => console.log('pong'));
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+});
+
+// macOS 以外では全ウィンドウを閉じたらアプリを終了する
+app.on('window-all-closed', () => {
+  if (!isMacOS()) {
+    app.quit();
+  }
+});
+
+function isMacOS(): boolean {
+  return process.platform === 'darwin';
+}
